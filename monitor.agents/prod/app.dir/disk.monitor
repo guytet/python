@@ -1,0 +1,38 @@
+#!/usr/bin/python
+
+# disk.monitor.py
+# polls for root partition usage, alerts slack channel if usages surpasses 90%. 
+
+import sys,psutil,json,pycurl,platform,time
+
+hostname = platform.node()
+
+def post_to_slack(issue,value):
+    c=pycurl.Curl()
+    c.setopt(pycurl.URL,'https://hooks.slack.com/services/')
+    c.setopt(pycurl.HTTPHEADER,['Accept:application/json'])
+    data=json.dumps({"text":"`%s` %s has reached %d%%" % (hostname,issue,value) }) # the last '%' is really just a'%':)
+    c.setopt(pycurl.POST,1)
+    c.setopt(pycurl.POSTFIELDS,data)
+    c.perform()
+    c.close()
+
+def disk_check():
+    disk_use = psutil.disk_usage('/')[3]  # 3rd element is % of usage
+    return disk_use
+
+
+if __name__ == '__main__':
+
+
+ while True:
+    if disk_check() >=  90:
+      disk_use = disk_check()
+      post_to_slack('disk usage for "/"', disk_use)
+      time.sleep(3600)                       # if alert was sent, lax the polling for a while 
+      continue
+       
+
+
+    else:
+     time.sleep(300)

@@ -1,0 +1,10 @@
+[Unit]
+Description=cpu monitor Service
+
+[Service]
+ExecStart=/usr/sbin/cpu.monitor
+StandardOutput=null
+
+[Install]
+WantedBy=multi-user.target
+Alias=cpu.monitor.service

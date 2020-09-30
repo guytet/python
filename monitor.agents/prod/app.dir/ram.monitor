@@ -1,0 +1,43 @@
+#!/usr/bin/python
+
+# ram.monitor gold@berkshiregre.com
+# polls for ram usage, alerts slack channel if usages surpasses 90% for for 5  minutes. 
+
+import sys,psutil,json,pycurl,platform,time
+
+hostname = platform.node()
+
+def post_to_slack(issue,value):
+    c=pycurl.Curl()
+    c.setopt(pycurl.URL,'https://hooks.slack.com/services/')
+    c.setopt(pycurl.HTTPHEADER,['Accept:application/json'])
+    data=json.dumps({"text":"`%s` %s has reached %d%%  for > 5 minutes" % (hostname,issue,value) }) # the last '%' is really just a'%':)
+    c.setopt(pycurl.POST,1)
+    c.setopt(pycurl.POSTFIELDS,data)
+    c.perform()
+    c.close()
+
+def ram_check():
+    ram_use = psutil.virtual_memory()[2] # 2nd is % of free mem 
+    return ram_use
+
+
+if __name__ == '__main__':
+
+# looking for ~5 consecutive minutes of ram use > 90% with first pole in the 60
+# second mark, to rule out quick spikes.
+
+ while True:
+    if ram_check() >=  90:
+     time.sleep(60)
+
+     if ram_check() >= 90:
+      time.sleep(240)
+      ram_use = ram_check()
+
+      if ram_use >= 90:
+       post_to_slack('ram usage', ram_use)
+       time.sleep(1800)                       # no need for frequent notifications, if one was sent, stop polling for a while.  
+
+    else:
+     time.sleep(120)

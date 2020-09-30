@@ -1,0 +1,10 @@
+[Unit]
+Description= BG {{ item }} Service
+
+[Service]
+ExecStart={{ script_dir }}{{ item }}
+StandardOutput=null
+
+[Install]
+WantedBy=multi-user.target
+Alias=cpu.monitor.service

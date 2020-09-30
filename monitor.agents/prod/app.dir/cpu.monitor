@@ -1,0 +1,44 @@
+#!/usr/bin/python
+
+# cpu.monitor gold@berkshiregrey.com
+# polls for cpu load over 90% lasting 5 minutes, alerts via slack
+# when the above is met. 
+
+import sys,psutil,json,pycurl,platform,time
+
+hostname = platform.node()
+
+def post_to_slack(issue,value):
+    c=pycurl.Curl()
+    c.setopt(pycurl.URL,'https://hooks.slack.com/services/')
+    c.setopt(pycurl.HTTPHEADER,['Accept:application/json'])
+    data=json.dumps({"text":"`%s` %s has reached %d%%  for > 5 minutes" % (hostname,issue,value) }) # the last '%' is really just a'%':)
+    c.setopt(pycurl.POST,1)
+    c.setopt(pycurl.POSTFIELDS,data)
+    c.perform()
+    c.close()
+
+def cpu_load_check():
+    cpu_load = psutil.cpu_percent(interval=1)   # interval must be >0 for meaningful output
+    return cpu_load
+
+
+if __name__ == '__main__':
+
+# looking for ~5 consecutive minutes of cpu load > 90% with first  pole in the 60
+# second mark, to rule out quick spikes.
+
+ while True:
+    if cpu_load_check() >=  90:
+     time.sleep(60)
+
+     if cpu_load_check() >= 90:
+      time.sleep(240)
+      cpu_load = cpu_load_check()
+
+      if cpu_load >= 90:
+       post_to_slack('cpu usage', cpu_load)
+       time.sleep(1800)                      # no need for frequent notifications, if one was sent, stop polling for a while.  
+    
+    else:
+     time.sleep(120)

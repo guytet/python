@@ -1,0 +1,63 @@
+---
+ - name: install lightweight cpu/ram/disk usage monitor
+   hosts: all
+   become: True
+   vars: 
+    services: 
+     - cpu.monitor 
+     - ram.monitor
+     - disk.monitor
+    local_conf_dir: "conf.files.template/"
+    script_dir:     "/usr/sbin/"
+    init_dir:       "/etc/init.d/"
+    systemd_dir:    "/lib/systemd/system/"
+    app_dir:        "app.dir/"
+   tasks:
+
+    - name: bootstrap packages
+      apt:
+       name:
+        - python-pip
+        - python-pycurl
+        - python-psutil
+       state: present
+       update_cache: True
+
+    - name: copy over monitor scripts
+      copy:
+       src: "{{ app_dir }}{{ item }}"
+       dest: "{{ script_dir }}"
+       owner: root
+       mode: 0715
+      loop: "{{ services }}"
+
+    - name: template init
+      template: 
+       src: "{{ local_conf_dir }}init.file.j2"
+       dest: "{{ init_dir }}{{ item }}"
+       owner: root
+       mode: 0715
+      loop: "{{ services }}"
+      when: ansible_distribution_major_version == "14"
+
+
+    - name: template systemd
+      template:
+        src: "{{ local_conf_dir }}systemd.init.j2"
+        dest: "{{ systemd_dir }}{{ item }}.service" #".service suffix hardcoded
+        owner: root
+        mode: 0715
+      loop: "{{ services }}"
+      when: ansible_distribution_major_version == "16"
+
+ 
+    - name: run command to help minimize reload errors on systemctl 
+      command: "systemctl daemon-reload"
+      when: ansible_distribution_major_version == "16" 
+ 
+    - name: enable the service
+      service:
+       name: "{{ item }}"
+       enabled: True
+       state: restarted
+      loop: "{{ services }}"
