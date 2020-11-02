@@ -1,10 +1,28 @@
 import scrapy
+import re
 
 
 class LighttpdSpider(scrapy.Spider):
     name = 'lighttpd'
-    allowed_domains = ['172.17.0.2']
-    start_urls = ['http://172.17.0.2/']
+    allowed_domains = ['localhost']
+    start_urls = ['http://localhost/']
 
     def parse(self, response):
-        pass
+        allitems = response.xpath("//li").getall()
+        for item in allitems:
+            print("now passing %s" %item)
+            print(self._parse_something(item))
+
+
+
+
+    def _parse_something(self, someline):
+        if re.search('weekly', someline):
+           return "yes" 
+
+  
+
+'''
+//button[contains(text(),"Go")] 
+'''
+
