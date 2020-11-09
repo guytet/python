@@ -1,5 +1,6 @@
 import scrapy
 import re
+import w3lib.html
 
 
 class LighttpdSpider(scrapy.Spider):
@@ -8,21 +9,26 @@ class LighttpdSpider(scrapy.Spider):
     start_urls = ['http://localhost/']
 
     def parse(self, response):
-        allitems = response.xpath("//li").getall()
-        for item in allitems:
-            print("now passing %s" %item)
-            print(self._parse_something(item))
 
+        print('!!!!')
 
+        lis = response.xpath("//li[contains(text(), 'files')]/following-sibling::*").getall()
+        for item in lis:
+             print(self._parse_something(item))
 
+        print('!!!!')
 
-    def _parse_something(self, someline):
-        if re.search('weekly', someline):
-           return "yes" 
-
-  
+    def _parse_something(self, item):
+         return(w3lib.html.remove_tags(item))
 
 '''
-//button[contains(text(),"Go")] 
+output= w3lib.html.remove_tags(input)
+print(output)
 '''
 
+#lis = response.xpath("//li/text()").getall()
+#lis = response.xpath("//li[contains(text(), 'files')]/following-sibling::li/text()").getall()
+
+#for p_node in response.xpath('//h3[contains(., 'General Meetings')]/following-sibling::p[position() < last()]'):
+#    address = p_node.xpath('./text()[last()]).get()
+#    date = p_node.xpath('./text()[last() - 1]).get()
