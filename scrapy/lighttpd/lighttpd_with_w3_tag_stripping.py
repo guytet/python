@@ -5,25 +5,21 @@ import w3lib.html as w3
 
 class LighttpdSpider(scrapy.Spider):
     name = 'lighttpd'
-    #start_urls = ['http://localhost:8000']
-    start_urls = ["https://www.mpbhba.org/business-resources/"]
+    allowed_domains = ['localhost']
+    start_urls = ['http://localhost:8000']
 
     def parse(self, response):
 
-        base = response.css('body')
-        one  = base.xpath("//p").getall()
-       
-        print(base)
-        for item in one:
-            print(item, '\n')
+        print('!!!!')
 
-#        for item in lis:
-#             print(self._parse_something(item))
-#
-#        print('!!!!')
-#
-#    def _parse_something(self, item):
-#         return(w3.remove_tags(item))
+        lis = response.xpath("//li[contains(text(), 'files')]/following-sibling::*").getall()
+        for item in lis:
+             print(self._parse_something(item))
+
+        print('!!!!')
+
+    def _parse_something(self, item):
+         return(w3.remove_tags(item))
 
 '''
 output= w3lib.html.remove_tags(input)
