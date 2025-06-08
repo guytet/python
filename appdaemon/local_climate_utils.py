@@ -1,3 +1,4 @@
+import inspect
 
 class LocalClimateUtils:
 
@@ -7,10 +8,9 @@ class LocalClimateUtils:
     def log_function_call(self):
         import inspect
         stack = inspect.stack()
-        current = stack[1].function  # the function that called log_call()
-        caller = stack[2].function   # the one that called that
+        current = stack[1].function
+        caller = stack[2].function
         self.log(f"{current} called by {caller}")
-
 
     def get_climate_entity_from_sensor(self, sensor_entity):
         self.log_function_call()
@@ -50,33 +50,35 @@ class LocalClimateUtils:
                 return sensor_entity
         return None
 
-    def initial_trigger_logic(self, sensor_entity, attribute, old, new, climate_entity, weather_entity):
+    def initial_trigger_logic(self, context):
         self.log_function_call()
         caller = inspect.stack()[1].function
-        match caller:
+        context._caller = caller
+        match context._caller:
             case "climate_state_change":
-                self.log(f"caller is {caller} due to {climate_entity} with new attribute {attribute}: {new}")
-                self.check_conditions(
-                    sensor_entity, attribute, old, new, climate_entity, weather_entity, caller
-                )
+                self.log(f"calling function is {context._caller} due to {context.climate_entity} with new attribute {context.attribute}: {context.new}")
+                self.check_conditions(context)
             case "hvac_action_change":
-                self.log(f"caller is {caller} due to {climate_entity} with new attribute {attribute}: {new}")
-                self.check_conditions(
-                    sensor_entity, attribute, old, new, climate_entity, weather_entity, caller
-                )
+                self.log(f"calling function is {context._caller} due to {contex.climate_entity} with new attribute {context.tattribute}: {context.new}")
+                self.check_conditions(context)
             case "sensor_state_change":
-                self.log(f"caller is {caller} due to {sensor_entity} with new attribute {attribute}: {new}")
-                self.check_conditions(
-                    sensor_entity, attribute, old, new, climate_entity, weather_entity, caller
-                )
+                self.log(f"calling function is {context._caller} due to {context.sensor_entity} with new attribute {context.attribute}: {context.new}")
+                self.check_conditions(context)
             case _:
                 print("Unknown caller")
 
 
-    def check_conditions(self, sensor_entity, attribute, old, new, climate_entity, weather_entity, caller):
-        if caller.startswith("climate"):
-            outdoor_temperature = self.get_state(weather_entity, attribute="temperature")
+    def check_conditions(self, context):
+        if context._caller.startswith("climate"):
+            outdoor_temperature = self.get_state(context.weather_entity, attribute="temperature")
             self.log(f"outdoor temp is {outdoor_temperature}F")
+
+
+
+
+######################################################################
+
+
 
 #        self.log(f"climate entity is {climate_entity}")
 #        self.log(f"attribute changed is {attribute}")

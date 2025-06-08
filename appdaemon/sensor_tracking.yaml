@@ -1,9 +1,0 @@
----
-sensor_tracking:
-  module: sensor_tracking
-  class: SensorTracking
-  climates: climate.living_room,climate.bedroom
-  humidity_sensors: sensor.living_room_current_humidity,sensor.bedroom_current_humidity
-  temperature_sensors: sensor.living_room_current_temperature,sensor.bedroom_current_temperature
-  # cooling variables
-  cooling_outdoor_temp_threshold: 65

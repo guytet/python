@@ -1,8 +1,10 @@
 # based on: https://github.com/AppDaemon/appdaemon/blob/dev/conf/example_apps/globals.py
-
 import inspect
 import hassapi as hass
+from typing import Any
+from dataclasses import dataclass
 from local_climate_utils import LocalClimateUtils
+
 
 @dataclass
 class TrackingContext:
@@ -12,7 +14,6 @@ class TrackingContext:
     new: Any = None
     climate_entity: str = None
     weather_entity: str = None
-    caller: str = None
 
 
 class SensorTracking(hass.Hass, LocalClimateUtils):
@@ -44,6 +45,8 @@ class SensorTracking(hass.Hass, LocalClimateUtils):
                 )
 
     def build_context(self, entity, attribute, old, new):
+        self.log_function_call()
+
         if entity.startswith("sensor."):
             sensor_entity = entity
             climate_entity = self.get_climate_entity_from_sensor(sensor_entity)
@@ -62,39 +65,31 @@ class SensorTracking(hass.Hass, LocalClimateUtils):
             new=new,
             climate_entity=climate_entity,
             weather_entity=weather_entity,
-            caller=inspect.stack()[1].function
         )
 
-
-    def sensor_state_change(self, sensor_entity, attribute, old, new):
-        self.print_delimiter()
-        self.log_function_call()
+    def sensor_state_change(self, sensor_entity, attribute, old, new, kwargs):
         # state changes (e.g., new temperature/humidity value)
         if new != "":
-            climate_entity = self.derive_climate_by_sensor(sensor_entity)
-            weather_entity = self.derive_weather_by_sensor_or_climate(sensor_entity)
-            # main call to trigger logic
-            self.initial_trigger_logic(sensor_entity, attribute, old, new, climate_entity, weather_entity)
+            self.print_delimiter()
+            self.log_function_call()
+            context = self.build_context(sensor_entity, attribute, old, new)
+            self.initial_trigger_logic(context)
 
-    def hvac_action_change(self, climate_entity, attribute, old, new):
-        self.print_delimiter()
-        self.log_function_call()
-        # mode changes (e.g., heating/cooling/idle)
-        if old != new:
-            sensor_entity  = self.derive_sensor_by_climate(climate_entity)
-            weather_entity = self.derive_weather_by_sensor_or_climate(climate_entity)
-            # main call to trigger logic
-            self.initial_trigger_logic(sensor_entity, attribute, old, new, climate_entity, weather_entity)
-
-    def climate_state_change(self, climate_entity, attribute, old, new):
-        self.print_delimiter()
-        self.log_function_call()
+    def hvac_action_change(self, climate_entity, attribute, old, new, kwargs):
         # mode changes (e.g., heat/cool/off)
         if new != "":
-            sensor_entity  = self.derive_sensor_by_climate(climate_entity)
-            weather_entity = self.derive_weather_by_sensor_or_climate(climate_entity)
-            # main call to trigger logic
-            self.initial_trigger_logic(sensor_entity, attribute, old, new, climate_entity, weather_entity)
+            self.print_delimiter()
+            self.log_function_call()
+            context = self.build_context(climate_entity, attribute, old, new)
+            self.initial_trigger_logic(context)
+
+    def climate_state_change(self, climate_entity, attribute, old, new, kwargs):
+        # mode changes (e.g., heat/cool/off)
+        if new != "":
+            self.print_delimiter()
+            self.log_function_call()
+            context = self.build_context(climate_entity, attribute, old, new)
+            self.initial_trigger_logic(context)
 
     def derive_climate_by_sensor(self, sensor_entity):
         self.log_function_call()
