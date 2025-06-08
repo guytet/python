@@ -42,6 +42,16 @@ class SensorTracking(hass.Hass, LocalClimateUtils):
                     self.hvac_action_change, climate, attribute="hvac_action"
                 )
 
+    def sensor_state_change(self, sensor_entity, attribute, old, new):
+        self.print_delimiter()
+        self.log_function_call()
+        # state changes (e.g., new temperature/humidity value)
+        if new != "":
+            climate_entity = self.derive_climate_by_sensor(sensor_entity)
+            weather_entity = self.derive_weather_by_sensor_or_climate(sensor_entity)
+            # main call to trigger logic
+            self.initial_trigger_logic(sensor_entity, attribute, old, new, climate_entity, weather_entity)
+
     def hvac_action_change(self, climate_entity, attribute, old, new):
         self.print_delimiter()
         self.log_function_call()
@@ -49,7 +59,6 @@ class SensorTracking(hass.Hass, LocalClimateUtils):
         if old != new:
             sensor_entity  = self.derive_sensor_by_climate(climate_entity)
             weather_entity = self.derive_weather_by_sensor_or_climate(climate_entity)
-             
             # main call to trigger logic
             self.initial_trigger_logic(sensor_entity, attribute, old, new, climate_entity, weather_entity)
 
@@ -60,16 +69,6 @@ class SensorTracking(hass.Hass, LocalClimateUtils):
         if new != "":
             sensor_entity  = self.derive_sensor_by_climate(climate_entity)
             weather_entity = self.derive_weather_by_sensor_or_climate(climate_entity)
-            # main call to trigger logic
-            self.initial_trigger_logic(sensor_entity, attribute, old, new, climate_entity, weather_entity)
-
-    def sensor_state_change(self, sensor_entity, attribute, old, new):
-        self.print_delimiter()
-        self.log_function_call()
-        # state changes (e.g., new temperature/humidity value)
-        if new != "":
-            climate_entity = self.derive_climate_by_sensor(sensor_entity)
-            weather_entity = self.derive_weather_by_sensor_or_climate(sensor_entity)
             # main call to trigger logic
             self.initial_trigger_logic(sensor_entity, attribute, old, new, climate_entity, weather_entity)
 
