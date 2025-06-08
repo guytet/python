@@ -10,7 +10,7 @@ class LocalClimateUtils:
         stack = inspect.stack()
         current = stack[1].function
         caller = stack[2].function
-        self.log(f"{current} called by {caller}")
+        self.log(f"{current} called by function {caller}")
 
     def get_climate_entity_from_sensor(self, sensor_entity):
         self.log_function_call()
@@ -54,21 +54,78 @@ class LocalClimateUtils:
         self.log_function_call()
         caller = inspect.stack()[1].function
         context._caller = caller
+
         match context._caller:
             case "climate_state_change":
-                self.log(f"calling function is {context._caller} due to {context.climate_entity} with new attribute {context.attribute}: {context.new}")
+                self.log(
+                    f"calling function is {context._caller} "
+                    f"due to {context.climate_entity} with new attribute "
+                    f"{context.attribute}: {context.new}"
+                )
                 self.check_conditions(context)
             case "hvac_action_change":
-                self.log(f"calling function is {context._caller} due to {contex.climate_entity} with new attribute {context.tattribute}: {context.new}")
+                self.log(
+                    f"calling function is {context._caller} "
+                    f"due to {context.climate_entity} with new attribute "
+                    f"{context.attribute}: {context.new}"
+                )
                 self.check_conditions(context)
             case "sensor_state_change":
-                self.log(f"calling function is {context._caller} due to {context.sensor_entity} with new attribute {context.attribute}: {context.new}")
+                self.log(
+                    f"calling function is {context._caller} "
+                    f"due to {context.climate_entity} with new attribute "
+                    f"{context.attribute}: {context.new}"
+                )
                 self.check_conditions(context)
             case _:
                 print("Unknown caller")
-
 
     def check_conditions(self, context):
         if context._caller.startswith("climate"):
             outdoor_temperature = self.get_state(context.weather_entity, attribute="temperature")
             self.log(f"outdoor temp is {outdoor_temperature}F")
+
+
+
+
+######################################################################
+
+
+
+#        self.log(f"climate entity is {climate_entity}")
+#        self.log(f"attribute changed is {attribute}")
+#        self.log(f"{sensor_entity} changed attribute {attribute} from {old} to {new}")
+#
+#        current_mode = self.get_state(climate_entity) 
+#        self.log( f"current mode of {climate_entity} is {current_mode}")
+
+
+        #full_climate_info = self.get_state(
+        #    climate, attribute="all"
+        #)
+        #self.log(f"Full {climate} data: {full_climate_info}")
+
+        #current_mode = self.get_state(climate) 
+        #self.log(
+        #    f"current mode of {climate} is {current_mode}"
+        #)
+
+
+
+# Example for calling service
+# self.call_service( "climate/set_hvac_mode", entity_id="climate.living_room", hvac_mode="cool")
+# self.call_service("climate/set_temperature", entity_id=climate_entity, temperature=...)
+
+# Example for aux heat
+# self.call_service( "climate/set_aux_heat", entity_id="climate.living_room", aux_heat=True)
+
+# Example for finding supported mode of entity
+# modes = self.get_state(climate_entity, attribute="hvac_modes")
+# self.log(f"{climate_entity} supports modes: {modes}")
+
+# Example for shifting to _2 in order to make changes to aux_heat
+# climate = f"{climate}_2"
+
+# now being done using log_funtion_call()
+#caller = inspect.stack()[1].function
+#self.log(f"{inspect.currentframe().f_code.co_name} called by {caller}")
