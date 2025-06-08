@@ -6,13 +6,14 @@ from local_climate_utils import LocalClimateUtils
 
 @dataclass
 class TrackingContext:
-    sensor: str
-    climate: str
-    weather: str
-    attribute: str
-    old: any
-    new: any
-    caller: str
+    sensor_entity: str = None
+    attribute: str = None
+    old: Any = None
+    new: Any = None
+    climate_entity: str = None
+    weather_entity: str = None
+    caller: str = None
+
 
 class SensorTracking(hass.Hass, LocalClimateUtils):
     def initialize(self):
@@ -41,6 +42,29 @@ class SensorTracking(hass.Hass, LocalClimateUtils):
                 self.listen_state(
                     self.hvac_action_change, climate, attribute="hvac_action"
                 )
+
+    def build_context(self, entity, attribute, old, new):
+        if entity.startswith("sensor."):
+            sensor_entity = entity
+            climate_entity = self.get_climate_entity_from_sensor(sensor_entity)
+        elif entity.startswith("climate."):
+            climate_entity = entity
+            sensor_entity = self.get_sensor_entity_from_climate(climate_entity)
+        else:
+            raise ValueError(f"Unsupported entity type: {entity}")
+    
+        weather_entity = self.get_weather_entity_from_sensor_or_climate(entity)
+    
+        return TrackingContext(
+            sensor_entity=sensor_entity,
+            attribute=attribute,
+            old=old,
+            new=new,
+            climate_entity=climate_entity,
+            weather_entity=weather_entity,
+            caller=inspect.stack()[1].function
+        )
+
 
     def sensor_state_change(self, sensor_entity, attribute, old, new):
         self.print_delimiter()
