@@ -4,6 +4,16 @@ import inspect
 import hassapi as hass
 from local_climate_utils import LocalClimateUtils
 
+@dataclass
+class TrackingContext:
+    sensor: str
+    climate: str
+    weather: str
+    attribute: str
+    old: any
+    new: any
+    caller: str
+
 class SensorTracking(hass.Hass, LocalClimateUtils):
     def initialize(self):
         #self.log("SensorTracking initialize() called")
