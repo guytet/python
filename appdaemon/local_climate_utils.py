@@ -6,31 +6,31 @@ import datetime
 class LocalClimateUtils:
 
     def load_yaml_params(self):
-        self.preferred_weather_entity       = self.args["preferred_weather_entity"]
-        self.cooling_outdoor_temp_threshold = self.args["cooling_outdoor_temp_threshold"]
+        self.preferred_weather_entity          = self.args["preferred_weather_entity"]
+        self.cooling_outdoor_temp_threshold    = self.args["cooling_outdoor_temp_threshold"]
 
-        self.living_room_min_temp_day       = self.args["living_room_min_temp_day"]
-        self.living_room_min_temp_night     = self.args["living_room_min_temp_night"]
+        self.living_room_min_temp_day          = self.args["living_room_min_temp_day"]
+        self.living_room_min_temp_night        = self.args["living_room_min_temp_night"]
 
-        self.bedroom_min_temp_day           = self.args["bedroom_min_temp_day"]
-        self.bedroom_min_temp_night         = self.args["bedroom_min_temp_night"]
+        self.bedroom_min_temp_day              = self.args["bedroom_min_temp_day"]
+        self.bedroom_min_temp_night            = self.args["bedroom_min_temp_night"]
 
-        self.daytime_outdoor_warm_threshold = self.args["daytime_outdoor_warm_threshold"]
-        self.daytime_outdoor_hot_threshold  = self.args["daytime_outdoor_hot_threshold"]
+        self.daytime_outdoor_warm_threshold    = self.args["daytime_outdoor_warm_threshold"]
+        self.daytime_outdoor_hot_threshold     = self.args["daytime_outdoor_hot_threshold"]
 
-        self.daytime_cooling_set_warm       = self.args["daytime_cooling_set_warm"]
-        self.daytime_cooling_set_hot        = self.args["daytime_cooling_set_hot"]
-        self.daytime_cooling_set_very_hot   = self.args["daytime_cooling_set_very_hot"]
+        self.daytime_cooling_set_warm          = self.args["daytime_cooling_set_warm"]
+        self.daytime_cooling_set_hot           = self.args["daytime_cooling_set_hot"]
+        self.daytime_cooling_set_very_hot      = self.args["daytime_cooling_set_very_hot"]
 
-        self.daytime_outdoor_humidity_set   = self.args["daytime_outdoor_humidity_set"]
+        self.daytime_outdoor_humidity_set      = self.args["daytime_outdoor_humidity_set"]
 
-        self.night_cooling_set              = self.args["night_cooling_set"]
-        self.cooling_to_idle_temp_set       = self.args["cooling_to_idle_temp_set"]
+        self.night_cooling_set                 = self.args["night_cooling_set"]
+        self.cooling_to_idle_temp_set          = self.args["cooling_to_idle_temp_set"]
 
         self.bedroom_heating_idle_temp_set     = self.args["bedroom_heating_idle_temp_set"]
         self.living_room_heating_idle_temp_set = self.args["living_room_heating_idle_temp_set"]
 
-        self.in_testing                     = self.args.get("in_testing", None)
+        self.in_testing                        = self.args.get("in_testing", None)
 
 
     def print_delimiter(self):
