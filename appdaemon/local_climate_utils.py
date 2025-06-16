@@ -1,5 +1,7 @@
 import inspect
-from datetime import datetime, time
+import time 
+import datetime
+
 
 class LocalClimateUtils:
 
@@ -9,6 +11,9 @@ class LocalClimateUtils:
 
         self.living_room_min_temp_day       = self.args["living_room_min_temp_day"]
         self.living_room_min_temp_night     = self.args["living_room_min_temp_night"]
+
+        self.bedroom_min_temp_day           = self.args["bedroom_min_temp_day"]
+        self.bedroom_min_temp_night         = self.args["bedroom_min_temp_night"]
 
         self.daytime_outdoor_warm_threshold = self.args["daytime_outdoor_warm_threshold"]
         self.daytime_outdoor_hot_threshold  = self.args["daytime_outdoor_hot_threshold"]
@@ -20,6 +25,10 @@ class LocalClimateUtils:
         self.daytime_outdoor_humidity_set   = self.args["daytime_outdoor_humidity_set"]
 
         self.night_cooling_set              = self.args["night_cooling_set"]
+        self.cooling_to_idle_temp_set       = self.args["cooling_to_idle_temp_set"]
+
+        self.bedroom_heating_idle_temp_set     = self.args["bedroom_heating_idle_temp_set"]
+        self.living_room_heating_idle_temp_set = self.args["living_room_heating_idle_temp_set"]
 
         self.in_testing                     = self.args.get("in_testing", None)
 
@@ -35,52 +44,108 @@ class LocalClimateUtils:
         self.log(f"{current} called by function {caller}")
 
     def hvac_hours(self, hvac_mode):
-        now = datetime.now().time()
-        if hvac_mode == "cool":
-            day_cooling_start    = time(10, 0)
-            cooling_boundry_time = time(23, 0)
-            night_cooling_end    = time(4, 0)
-        
-            if day_cooling_start <= now < cooling_boundry_time:
-                self.log(f"hvac schedule is daytime_cooling")
-                return("daytime_cooling")
-            if now >= cooling_boundry_time or now <= night_cooling_end:
-                self.log(f"hvac schedule is night_cooling")
-                return("night_cooling")
+        now = datetime.datetime.now().time()
+
+        if self.in_testing:
+            if hvac_mode == "cool":
+                day_cooling_start    = datetime.time(10, 0)
+                cooling_boundry_time = datetime.time(23, 0)
+                night_cooling_end    = datetime.time(10, 0)
+            
+                if day_cooling_start <= now < cooling_boundry_time:
+                    self.log(f"In Testing: hvac schedule is daytime_cooling")
+                    return("daytime_cooling")
+                if now >= cooling_boundry_time or now <= night_cooling_end:
+                    self.log(f"In testing hvac schedule is night_cooling")
+                    return("night_cooling")
+
+        else:
+            if hvac_mode == "cool":
+                day_cooling_start    = datetime.time(10, 0)
+                cooling_boundry_time = datetime.time(23, 0)
+                night_cooling_end    = datetime.time(4, 0)
+            
+                if day_cooling_start <= now < cooling_boundry_time:
+                    self.log(f"hvac schedule is daytime_cooling")
+                    return("daytime_cooling")
+                if now >= cooling_boundry_time or now <= night_cooling_end:
+                    self.log(f"hvac schedule is night_cooling")
+                    return("night_cooling")
         return None
 
-    def climate_living_room_cooling_conditions(self, context):
-        if self.get_state(context.climate_entity) == "cool" and \
-        context._outdoor_temperature > self.cooling_outdoor_temp_threshold and \
-        self.get_state(context.climate_entity, attribute="hvac_action") != "cooling":
-            self.log(f"{context.climate_entity} is set to cool and not currently cooling")
+
+    def is_within_time_range(self, range_name):
+        now = datetime.datetime.now().time()
+    
+        time_ranges = {
+            "bedroom_starts_living_room_cooling":  (datetime.time(21, 30),  datetime.time(8, 0)),
+            "cooling_to_idle_hours_early":         (datetime.time(21, 0), datetime.time(8, 0)),  # wraps around midnight
+            "cooling_to_idle_hours_late":          (datetime.time(0, 0),  datetime.time(8, 0)),
+        }
+    
+        if range_name not in time_ranges:
+            self.log(f"Unknown time range: {range_name}")
+            return None
+    
+        start, end = time_ranges[range_name]
+    
+        if start <= end:
+            match = start <= now <= end
+        else:
+            match = now >= start or now <= end  # handles overnight ranges
+    
+        if match:
+            self.log(f"time range {range_name} returning True")
             return True
+    
+        return None
+
+ 
+    def climate_living_room_cooling_conditions(self, context):
+        is_set_to_cool = self.get_state(context.climate_entity) == "cool"
+        is_not_cooling = self.get_state(context.climate_entity, attribute="hvac_action") != "cooling"
+    
+        if is_set_to_cool and is_not_cooling:
+            if self.in_testing:
+                self.log(f"In testing: {context.climate_entity} is set to cool and not currently cooling")
+                return True
+            if context._outdoor_temperature > self.cooling_outdoor_temp_threshold:
+                self.log(f"{context.climate_entity} is set to cool and not currently cooling")
+                return True
         return None
 
     def check_if_cooling_required(self, context):
-        if context._schedule == "daytime_cooling": 
-            if context._outdoor_temperature <= self.daytime_outdoor_warm_threshold:
-              exceed_temp = self.daytime_cooling_set_warm
-            if self.daytime_outdoor_warm_threshold < context._outdoor_temperature <= self.daytime_outdoor_hot_threshold:
-              exceed_temp = self.daytime_cooling_set_hot
-            if context._outdoor_temperature > self.daytime_outdoor_hot_threshold:
-              exceed_temp = self.daytime_cooling_set_very_hot
-
-        if context._schedule == "night_cooling": 
-              exceed_temp = self.night_cooling_set 
-
-        self.log(f"temp that should be matched or exceeded is {exceed_temp}")
-
-        if float(self.get_state(context.sensor_entity) or 0) >= exceed_temp:
-            self.log(f"cooling is required")
+        if self.in_testing:
+            self.log("In Testing: check_if_cooling_required Returning True")
             return True
-        
+    
+        if context._schedule == "daytime_cooling":
+            outdoor_temp = context._outdoor_temperature
+            if outdoor_temp <= self.daytime_outdoor_warm_threshold:
+                exceed_temp = self.daytime_cooling_set_warm
+            elif outdoor_temp <= self.daytime_outdoor_hot_threshold:
+                exceed_temp = self.daytime_cooling_set_hot
+            else:
+                exceed_temp = self.daytime_cooling_set_very_hot
+    
+        elif context._schedule == "night_cooling":
+            exceed_temp = self.night_cooling_set
+        else:
+            return None  # unknown schedule
+    
+        self.log(f"temp that should be matched or exceeded is {exceed_temp}")
+    
+        current_temp = float(self.get_state(context.sensor_entity) or 0)
+        if current_temp >= exceed_temp:
+            self.log("cooling is required")
+            return True
+    
         current_humidity = int(self.get_state(context.climate_entity, attribute="current_humidity") or 0)
         if current_humidity > self.daytime_outdoor_humidity_set:
-            self.log(f"cooling is required due to humidity")
+            self.log("cooling is required due to humidity")
             return True
-        
         return None
+
         
     def get_climate_entity_from_sensor(self, sensor_entity):
         #self.log_function_call()
@@ -135,66 +200,222 @@ class LocalClimateUtils:
                 return sensor_entity
         return None
 
-#bbb
+
     def call_for_cooling(self, context):
-        current_temp = float(self.get_state(context.sensor_entity))
+        self.log("entering call_for_cooling")
 
-        if context._schedule == "daytime_cooling":
-            desired_temperature = max(current_temp - 1.1, self.living_room_min_temp_day)
-        if context._schedule == "night_cooling":
-            desired_temperature = max(current_temp - 1.1, self.living_room_min_temp_night)
+        def get_desired_temp(current, schedule, is_testing, min_day, min_night):
+            delta = 1.1 if is_testing else -1.1
+            minimum = min_day if schedule == "daytime_cooling" else min_night
+            return max(current + delta, minimum)
+    
+        def apply_cooling(entity_id, current_temp, schedule, is_testing, min_day, min_night):
+            desired_temp = round(
+                get_desired_temp(
+                    current_temp, schedule, is_testing, min_day, min_night), 1
+            )
 
-        self.call_service("climate/set_temperature", entity_id=climate_entity, temperature=desired_temperature)
+            action = "Increasing" if is_testing else "engaging"
+            self.log(f"{action} temp for {entity_id} to {desired_temp}")
+
+            response = self.call_service(
+                "climate/set_temperature", 
+                entity_id=entity_id, 
+                temperature=desired_temp
+            )
+            self.log(f"call_for_cooling set cooling on {entity_id} to {desired_temp}")
+            return response
+    
+
+        is_testing = self.in_testing
+        schedule = context._schedule
+    
+        living_room_current_temp = float(self.get_state(context.sensor_entity))
+        bedroom_current_temp     = float(self.get_state("sensor.bedroom_current_temperature"))
+   
+        # start living room cooling 
+        living_room_cooling_start = apply_cooling(
+            context.climate_entity,
+            living_room_current_temp,
+            schedule,
+            is_testing,
+            self.living_room_min_temp_day,
+            self.living_room_min_temp_night
+        )
+
+        # start bedroom cooling 
+        if is_testing or living_room_cooling_start.get("success") is True:
+            if self.get_state("climate.bedroom") == "cool" and \
+               self.get_state("climate.bedroom", attribute="hvac_action") != "cooling":
+                apply_cooling(
+                    "climate.bedroom",
+                    bedroom_current_temp,
+                    schedule,
+                    is_testing,
+                    self.bedroom_min_temp_day,
+                    self.bedroom_min_temp_night
+                )
+                if not is_testing:
+                    self.decrease_cooling_just_a_bit(
+                        "sensor.bedroom_current_temperature",
+                        "climate.bedroom"
+                )
+
+        # After the whole process is down, we adjust the temp on living room
+        # Throuhout the workflow, living_room is the "natural" sensor_entiry and climate_enity
+        # so we can keep referring to it via variable vs. string litterals. 
+        if not is_testing:
+            self.decrease_cooling_just_a_bit(
+                context.sensor_entity,
+                context.climate_entity
+            )
+
+    def decrease_cooling_just_a_bit(self, sensor, climate):   
+        # allow a bit for cooling to engage and be stable
+        time.sleep(10)
+
+        desired_temp = round(float(self.get_state(sensor)) - 0.9, 1)
+
+        if self.get_state(climate, attribute="hvac_action") == "cooling":
+            self.call_service(
+                "climate/set_temperature", 
+                entity_id=climate,
+                temperature=desired_temp
+            )
+            self.log(f"decrease_cooling_just_a_bit on {climate} to {desired_temp}")
+
+#bbb         
+    def heating_to_idle_action(self, context):
+        if context.climate_entity == "climate.bedroom":
+            heating_idle_temp = self.bedroom_heating_idle_temp_set
+        if context.climate_entity == "climate.living_room":
+            heating_idle_temp = self.living_room_heating_idle_temp_set
+
+        # always set own temp to a lower temp 
+        if context.attribute == "hvac_action" and  \
+            context.old == "heating":
+            self.log(f"heating_to_idle_action setting {context.climate_entity} to idle temp {heating_idle_temp}")
+            self.call_service(
+              "climate/set_temperature", 
+              entity_id=context.climate_entity, 
+              temperature=heating_idle_temp
+            )
+    
+    def cooling_to_idle_action(self, context):
+        # always set own temp to a higher temp 
+        if context.attribute == "hvac_action" and  \
+            context.old == "cooling":
+            self.log(f"cooling_to_idle_action setting {context.climate_entity} to idle temp {self.cooling_to_idle_temp_set}")
+            self.call_service(
+              "climate/set_temperature", 
+              entity_id=context.climate_entity, 
+              temperature=self.cooling_to_idle_temp_set
+            )
+
+       # at night living room always shuts off bedroom 
+        if self.is_within_time_range("cooling_to_idle_hours_early") and \
+            context.old == "cooling" and \
+            context.climate_entity == "climate.living_room":
+            self.call_service(
+              "climate/set_temperature", 
+              entity_id="climate.bedroom",
+              temperature=self.cooling_to_idle_temp_set
+           )
+
+       # past midnight bedroom always shuts off living room
+        if self.is_within_time_range("cooling_to_idle_hours_late") and \
+            context.old == "cooling" and \
+            context.climate_entity == "climate.bedroom":
+            self.call_service(
+              "climate/set_temperature", 
+              entity_id="climate.living_room",
+              temperature=self.cooling_to_idle_temp_set
+           )
+
+    def check_if_other_climate_needs_trigger(self, context):
+        # In the off chance bedroom begins cooling late at night: also engage living_room
+        self.log("entering check_if_other_climate_needs_trigger")
+
+        if self.is_within_time_range("bedroom_starts_living_room_cooling") and \
+            context.climate_entity == "climate.bedroom":
+
+            living_room_current_temp = \
+                round(float(self.get_state("sensor.living_room_current_temperature")), 1)
+            desired_temp = living_room_current_temp - 1.1
+
+            self.call_service(
+              "climate/set_temperature", 
+              entity_id="climate.living_room",
+              temperature=desired_temp
+            )
+            self.decrease_cooling_just_a_bit(
+                context.sensor_entity,
+                context.climate_entity
+            )
+    
 
     def initial_trigger_logic(self, context):
         #self.log_function_call()
+        if self.in_testing:
+            self.log(f"Setup is running with Testing Logic")
+
         caller = inspect.stack()[1].function
         context._caller = caller
 
         match context._caller:
             case "climate_state_change":
                 self.log(
-                    f"calling function is {context._caller} "
-                    f"by {context.climate_entity} changed attribute "
-                    f"{context.attribute}: {context.new}"
+                    f"{context.climate_entity} changed attribute "
+                    f"{context.attribute}: from {context.old} to {context.new}"
                 )
+                #self.log(f"{context}")
                 self.check_conditions(context)
+
             case "hvac_action_change":
                 self.log(
-                    f"calling function is {context._caller} "
-                    f"by {context.climate_entity} changed attribute "
-                    f"{context.attribute}: {context.new}"
+                    f"{context.climate_entity} changed attribute "
+                    f"{context.attribute}: from {context.old} to {context.new}"
                 )
-                self.check_conditions(context)
+                #self.log(f"{context}")
+                if context.old != "cooling" or context.old != "heating": 
+                    self.check_conditions(context)
+
+                if context.new == "cooling":
+                    self.check_if_other_climate_needs_trigger(context)
+
+                # Cooling to idle
+                if context.old == "cooling":
+                    self.log("initial_trigger_logic calling cooling_to_idle_action")
+                    self.cooling_to_idle_action(context)
+
+                # heating to idle
+                if context.old == "heating":
+                    self.log("initial_trigger_logic calling heating_to_idle_action")
+                    self.heating_to_idle_action(context)
+
             case "sensor_state_change":
-                self.log(
-                    f"calling function is {context._caller} "
-                    f"by {context.sensor_entity} changed attribute "
-                    f"{context.attribute}: {context.new}"
-                )
+                # for now, we don't care to *log* humidity changes
+                if not context.sensor_entity.endswith("_current_humidity"):
+                    self.log(
+                        f"{context.sensor_entity} changed attribute "
+                        f"{context.attribute}: from {context.old} to {context.new}"
+                    )
+                #self.log(f"{context}")
                 self.check_conditions(context)
+
             case _:
                 print("Unknown caller")
 
     def check_conditions(self, context):
+        self.log_function_call()
+
         context._outdoor_temperature = self.get_state(self.preferred_weather_entity, attribute="temperature")
-        #self.log(f"outdoor temp is {outdoor_temperature}F")
-        #self.log(f"{self.get_state('climate.living_room')}")
+        self.log(f"outdoor temp is {context._outdoor_temperature}F")
 
         if context.climate_entity == "climate.living_room":
             if self.climate_living_room_cooling_conditions(context):
                 context._schedule = self.hvac_hours(self.get_state(context.climate_entity))
                 if context._schedule:
-                    self.check_if_cooling_required(context)
+                    if self.check_if_cooling_required(context):
+                        self.call_for_cooling(context)
 
-    # done in order to enable testing without actuating devices 
-    def testing_check_conditions(self, context):
-        context._outdoor_temperature = self.get_state(self.preferred_weather_entity, attribute="temperature")
-        #self.log(f"outdoor temp is {outdoor_temperature}F")
-        #self.log(f"{self.get_state('climate.living_room')}")
-
-        if context.climate_entity == "climate.living_room":
-            if self.climate_living_room_cooling_conditions(context):
-                context._schedule = self.hvac_hours(self.get_state(context.climate_entity))
-                if context._schedule:
-                    self.check_if_cooling_required(context)
