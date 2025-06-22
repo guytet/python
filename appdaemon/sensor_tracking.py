@@ -1,3 +1,4 @@
+# based on: https://github.com/AppDaemon/appdaemon/blob/dev/conf/example_apps/globals.py
 import inspect
 import hassapi as hass
 from typing import Any
