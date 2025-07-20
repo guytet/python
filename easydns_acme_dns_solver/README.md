@@ -28,11 +28,10 @@ This project provides a simple ACME DNS-01 challenge solver for EasyDNS, impleme
    git clone https://github.com/your-org/easydns-acme-solver.git
    cd easydns-acme-solver
 ```
-2. *Set environment variables*
+2. **Set environment variables**
 
 ```
 export EASYDNS_API_TOKEN_NAME="my-token-name"
 export EASYDNS_API_TOKEN="my-super-secret-token"
 export ZONE="example.com"
 ```
-
