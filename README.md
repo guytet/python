@@ -1,6 +1,6 @@
 # Python Utilities
 
-This repository is a collection of small, self-contained Python utilities built for personal use. While originally developed to solve specific needs in system administration, automation, or experimentation, the scripts are published publicly in case others find them useful.
+This repository is a collection of self-contained Python utilities built for personal use. While originally developed to solve specific needs in system administration, automation, or experimentation, the scripts are published publicly in case others find them useful.
 
 Each script is intended to be understandable, practical, and focused on a narrow task.
 
