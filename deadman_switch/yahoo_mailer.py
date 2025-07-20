@@ -99,7 +99,6 @@ class YahooMailer:
     def write_alert_log(self, message_file):
         pass
 
-
     def send_email(self, message_file):
         # strip() is required so the email body won't be treated as quoted text
         with open(message_file, 'r', encoding='utf-8') as file:
