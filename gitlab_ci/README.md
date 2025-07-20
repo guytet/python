@@ -11,4 +11,33 @@ You can install the required dependency with:
 
 ```bash
 pip install requests
+```
+
+### Usage
+```
+python trigger_pipeline.py \
+  --url https://gitlab.example.com \
+  --project-id 123 \
+  --ref main \
+  --token your_trigger_token \
+  --variable ENV=prod \
+  --variable FORCE_DEPLOY=true
+```
+
+Example:
+```
+python trigger_pipeline.py \
+  --url https://gitlab.internal \
+  --project-id 456 \
+  --ref develop \
+  --token abcdef123456 \
+  --variable DEPLOY_ENV=staging \
+  --variable RUN_MIGRATIONS=yes
+```
+
+Behavior:
+- On success, the script prints a confirmation message and the response JSON from the GitLab API.
+
+- On failure, it prints the HTTP status code and the response text for troubleshooting.
+
 
