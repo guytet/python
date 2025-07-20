@@ -40,3 +40,15 @@ SENDER_NAME = 'Your Name'
 YAHOO_APP_PASSWORD = 'your_app_password'
 RECIPIENTS = ['recipient1@example.com', 'recipient2@example.com']
 
+
+### 3. Project Structure
+```
+deadman_switch/
+├── deadman_switch.py         # Main runner and log parser
+├── yahoo_mailer.py           # Email logic via Yahoo SMTP
+├── variables.py              # Configuration
+├── warning_message.txt       # Warning-level email body
+├── critical_message.txt      # Critical-level email body
+└── /var/log/deadman_switch/
+    └── deadman_check.json    # Auto-created state file (persistent state)
+
