@@ -6,7 +6,7 @@
 
 ## Use Case
 
-Ideal for environments where regular logins are expected from a specific account, and their absence may indicate an issue — such as compromised access, automation failure, or system outage.
+Ideal for environments where regular logins are expected from a specific account, and their absence may indicate an issue - such as compromised access, automation failure, or system outage.
 
 ---
 
