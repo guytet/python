@@ -39,6 +39,7 @@ SENDER_ADDRESS = 'your_yahoo_email@example.com'
 SENDER_NAME = 'Your Name'
 YAHOO_APP_PASSWORD = 'your_app_password'
 RECIPIENTS = ['recipient1@example.com', 'recipient2@example.com']
+```
 
 
 ### 3. Project Structure
@@ -51,4 +52,4 @@ deadman_switch/
 ├── critical_message.txt      # Critical-level email body
 └── /var/log/deadman_switch/
     └── deadman_check.json    # Auto-created state file (persistent state)
-
+```
