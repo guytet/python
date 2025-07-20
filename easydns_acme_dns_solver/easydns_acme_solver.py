@@ -84,7 +84,6 @@ class AcmeSolver:
 
 
     def present(self):
-        self.debug_msg()
 
         if self.check_record_exists():
             self.update_record()
@@ -92,14 +91,8 @@ class AcmeSolver:
             self.create_record()
 
     def cleanup(self):
-        self.debug_msg()
         self.delete_record()
 
-    def debug_msg(self):
-        pass
-        # handleed by other means, at least for now
-        #log(f"received {self.cert_cn}")
-        #log(f"TXT record should be {self.required_txt_record}")
 
     def assemble_acme_record(self):
         if not self.cert_cn.endswith(f".{self.zone}"):
