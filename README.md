@@ -20,4 +20,4 @@ This project is licensed under the GNU General Public License v3.0 (GPLv3).
 
 You are free to use, modify, and distribute this software, but any derivative work or redistribution must also be licensed under GPLv3. This ensures that the source remains available and free for all users.
 
-See the [LICENSE](./LICENSE) file for the full terms.
+See the [LICENSE](https://www.gnu.org/licenses/gpl-3.0.html#license-text) file for the full terms.
