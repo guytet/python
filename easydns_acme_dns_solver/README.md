@@ -24,7 +24,6 @@ This project provides a simple ACME DNS-01 challenge solver for EasyDNS, impleme
 ## Installation & Usage
 
 1. **Clone the repository**  
-   ```bash
    git clone https://github.com/your-org/easydns-acme-solver.git
    cd easydns-acme-solver
 ```
