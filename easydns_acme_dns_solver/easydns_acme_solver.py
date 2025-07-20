@@ -73,12 +73,8 @@ class AcmeSolver:
         resp = {'uid': self.request_uid, 'status': 'success'}
         log("Response to cert-manager: " + json.dumps(resp, indent=2))
 
-#        return jsonify({
-#            "uid": self.request_uid,
-#            "status": "success"
-#        }), 200, {'Content-Type': 'application/json'}
-
         return jsonify({
+            "uid": self.request_uid,
             "status": "success"
         }), 200, {'Content-Type': 'application/json'}
 
