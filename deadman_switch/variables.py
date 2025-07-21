@@ -10,7 +10,7 @@ SENDER_ADDRESS = ''
 SENDER_NAME = ''
 
 # Yahoo requires app passowrd to be created when SAML isn't used for access
-YAHOO_APP_PASSWORD = 'qifhuavdvqtsojzf'
+YAHOO_APP_PASSWORD = ''
 
 # List for recipients
 RECIPIENTS_WARN = []
