@@ -13,7 +13,8 @@ SENDER_NAME = ''
 YAHOO_APP_PASSWORD = ''
 
 # List for recipients
-RECIPIENTS = []
+RECIPIENTS_WARN = []
+RECIPIENTS_CRIT = []
 
 BIN_DIR="/usr/local/bin/deadman_switch"
 CRITICAL_MESSAGE_FILE="/usr/local/bin/deadman_switch/critical_message.txt"
