@@ -42,7 +42,7 @@ YAHOO_APP_PASSWORD = 'your_app_password'
 # To remind you to ssh into the system, otherwise the critical logic will trigger
 RECIPIENTS_WARN = ['user1@example.com', 'user2@example.com']
 
-# The addresses which will recieve the  final alert - likely not your own,
+# The addresses which will recieve the  final alert - likely not your own.
 # Remember to be polite, this could be your last message...
 RECIPIENTS_CRIT = ['user3@example.com', 'user4@example.com']
 ```
