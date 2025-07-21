@@ -10,10 +10,11 @@ SENDER_ADDRESS = ''
 SENDER_NAME = ''
 
 # Yahoo requires app passowrd to be created when SAML isn't used for access
-YAHOO_APP_PASSWORD = ''
+YAHOO_APP_PASSWORD = 'qifhuavdvqtsojzf'
 
 # List for recipients
-RECIPIENTS = []
+RECIPIENTS_WARN = []
+RECIPIENTS_CRIT = []
 
 BIN_DIR="/usr/local/bin/deadman_switch"
 CRITICAL_MESSAGE_FILE="/usr/local/bin/deadman_switch/critical_message.txt"
