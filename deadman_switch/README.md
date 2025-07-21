@@ -30,7 +30,6 @@ Ideal for environments where regular logins are expected from a specific account
 - Access to `/var/log/auth.log` (typically requires root)
 
 ### 2. Configuration
-
 Edit the `variables.py` file with your environment details:
 
 ```python
@@ -43,7 +42,7 @@ YAHOO_APP_PASSWORD = 'your_app_password'
 # To remind you to ssh into the system, otherwise the critical logic will trigger
 RECIPIENTS_WARN = ['user1@example.com', 'user2@example.com']
 
-# The addresses which will recieve the  final alert - likely not your own,
+# The addresses which will recieve the  final alert - likely not your own.
 # Remember to be polite, this could be your last message...
 RECIPIENTS_CRIT = ['user3@example.com', 'user4@example.com']
 ```
@@ -61,4 +60,12 @@ deadman_switch/
     └── deadman_check.json    # Auto-created state file (persistent state)
 ```
 
+### 3. Example Cron job
+Run twice daily, 0900 and 2100, therhold set to 12 hours
+Hence, according to the app's code: 
+- A warning alert will be sent after 12, 24 hours; if no ssh login will be detected:
+- A critical alert will be sent at 36 and 48 hours, then no more.  
+```
+0 9,21 * * *  root /usr/bin/python3 /usr/local/bin/deadman_switch//deadman_switch.py --threshold 43200 > /dev/null 2>&1
+```
 
