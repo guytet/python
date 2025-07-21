@@ -61,12 +61,11 @@ deadman_switch/
 ```
 
 ### 3. Example Cron job
-
-```
-# run twice daily, 0900 and 2100, therhold set to 12 hours
-# Hence, according to the app's code: 
+run twice daily, 0900 and 2100, therhold set to 12 hours
+Hence, according to the app's code: 
 - A warning will be sent after 12, 24 hours; if no ssh login will be detected:
 - A critical will be sent at 36 and 48 hours, then no more.  
+```
 0 9,21 * * *  root /usr/bin/python3 /usr/local/bin/deadman_switch//deadman_switch.py --threshold 43200 > /dev/null 2>&1
 ```
 
