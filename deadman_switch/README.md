@@ -38,7 +38,14 @@ SSH_USER = 'your_ssh_user'
 SENDER_ADDRESS = 'your_yahoo_email@example.com'
 SENDER_NAME = 'Your Name'
 YAHOO_APP_PASSWORD = 'your_app_password'
-RECIPIENTS = ['recipient1@example.com', 'recipient2@example.com']
+
+# The addresses which will recieve a warning alrert - likely your own,
+# To remind you to ssh into the system, otherwise the critical logic will trigger
+RECIPIENTS_WARN = ['user1@example.com', 'user2@example.com']
+
+# The addresses which will recieve the  final alert - likely not your own,
+# Remember to be polite, this could be your last message...
+RECIPIENTS_CRIT = ['user3@example.com', 'user4@example.com']
 ```
 
 
