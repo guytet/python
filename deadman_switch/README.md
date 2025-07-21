@@ -30,7 +30,6 @@ Ideal for environments where regular logins are expected from a specific account
 - Access to `/var/log/auth.log` (typically requires root)
 
 ### 2. Configuration
-
 Edit the `variables.py` file with your environment details:
 
 ```python
@@ -61,4 +60,13 @@ deadman_switch/
     └── deadman_check.json    # Auto-created state file (persistent state)
 ```
 
+### 3. Example Cron job
+
+```
+# run twice daily, 0900 and 2100, therhold set to 12 hours
+# Hence, according to the app's code: 
+- A warning will be sent after 12, 24 hours; if no ssh login will be detected:
+- A critical will be sent at 36 and 48 hours, then no more.  
+0 9,21 * * *  root /usr/bin/python3 /usr/local/bin/deadman_switch//deadman_switch.py --threshold 43200 > /dev/null 2>&1
+```
 
