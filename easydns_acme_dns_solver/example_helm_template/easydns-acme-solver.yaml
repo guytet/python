@@ -1,0 +1,113 @@
+---
+apiVersion: apiregistration.k8s.io/v1
+kind: APIService
+metadata:
+  name: v1alpha1.acme.easydns.com
+spec:
+  group: acme.easydns.com
+  version: v1alpha1
+  service:
+    name: easydns-acme-solver
+    namespace: cert-manager
+    port: 443
+  caBundle: {{ index .Values "easydns-acme-solver" "caBundle" }}
+  groupPriorityMinimum: 1000
+  versionPriority: 15
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ index .Values "easydns-acme-solver" "registeryPullSecret" }}
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: {{ index .Values "easydns-acme-solver" "dockerconfigjson" | quote }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ index .Values "easydns-acme-solver" "tls" "secretName" }}
+  namespace: cert-manager
+type: kubernetes.io/tls
+data:
+  tls.crt: {{ index .Values "easydns-acme-solver" "tls" "crt" | b64enc }}
+  tls.key: {{ index .Values "easydns-acme-solver" "tls" "key" | b64enc }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: easydns-acme-solver
+  labels:
+    app: easydns-acme-solver
+spec:
+  type: ClusterIP
+  ports:
+    - port: 443
+      targetPort: 8443
+      protocol: TCP
+      name: https
+  selector:
+    app: easydns-acme-solver
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: easydns-acme-solver
+  labels:
+    app: easydns-acme-solver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: easydns-acme-solver
+  template:
+    metadata:
+      labels:
+        app: easydns-acme-solver
+    spec:
+      imagePullSecrets:
+        - name: {{ index .Values "easydns-acme-solver" "registeryPullSecret" }}
+      containers:
+        - name: easydns-acme-solver
+          image: {{ printf "%s:%s" (index .Values "easydns-acme-solver" "image") (index .Values "easydns-acme-solver" "tag") }}
+          imagePullPolicy: {{ index .Values "easydns-acme-solver" "pull_policy" }}
+          ports:
+            - name: http
+              containerPort: 8443
+          env:
+            - name: EASYDNS_API_TOKEN_NAME
+              value: {{ index .Values "easydns-acme-solver" "easydns_api_token_name" | quote }}
+            - name: EASYDNS_API_TOKEN
+              value: {{ index .Values "easydns-acme-solver" "easydns_api_token" | quote }}
+          volumeMounts:
+            - name: tls-secret
+              mountPath: "/etc/tls"
+              readOnly: true
+      volumes:
+        - name: tls-secret
+          secret:
+            secretName: {{ index .Values "easydns-acme-solver" "tls" "secretName" }}
+---
+# ClusterRole: allow cert-manager to create challenge resources in your API group
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: easydns-acme-solver-solver
+rules:
+  - apiGroups: ["acme.easydns.com"]
+    resources: ["*"]
+    verbs: ["create"]
+---
+# ClusterRoleBinding: bind the above role to cert-manager's ServiceAccount
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: easydns-acme-solver-solver
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: easydns-acme-solver-solver
+subjects:
+  - kind: ServiceAccount
+    name: cert-manager
+    namespace: cert-manager
+

@@ -33,5 +33,4 @@ This project provides a simple ACME DNS-01 challenge solver for EasyDNS, impleme
 ```
 export EASYDNS_API_TOKEN_NAME="my-token-name"
 export EASYDNS_API_TOKEN="my-super-secret-token"
-export ZONE="example.com"
 ```
