@@ -6,7 +6,7 @@ from datetime import datetime
 from requests.auth import HTTPBasicAuth
 from flask import Flask, request, jsonify
 
-# init the flask app
+# Define Flask routes
 app = Flask(__name__)
 @app.route("/apis/acme.easydns.com/v1alpha1/challenges", methods=["POST"])
 def handle_acme_challenge():
@@ -34,10 +34,10 @@ class AcmeSolver:
         log("FULL PAYLOAD FROM CERT-MANAGER: " + json.dumps(self.payload, indent=2))
 
         self.request = self.payload["request"]
-        #self.request_uid = self.request.get("uid") or str(uuid.uuid4()) ###
         self.request_uid = self.request.get("uid")
 
-        self.operation = self.request.get("action")  # "Present" or "CleanUp"
+        # cert-manager will sent either: "Present" or "CleanUp"
+        self.operation = self.request.get("action")
 
         self.cert_cn = self.request["dnsName"]
         self.zone = self.request.get("resolvedZone")[:-1]
@@ -127,7 +127,7 @@ def log(msg, level="INFO"):
     print(f"[{level}] {timestamp} {msg}")
 
 
-# this app is being called by gunicorn, to enable TLS support, this section no
-# longer needed, kept for reference:
+# This app is being called by gunicorn in prod -  to enable proper TLS support.
+# This can be used when testing the app locally.
 #if __name__ == '__main__':
 #    app.run(host='0.0.0.0', port=8443)
