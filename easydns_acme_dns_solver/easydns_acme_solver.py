@@ -34,12 +34,14 @@ class AcmeSolver:
         log("FULL PAYLOAD FROM CERT-MANAGER: " + json.dumps(self.payload, indent=2))
 
         self.request = self.payload["request"]
-        self.request_uid = self.request.get("uid") or str(uuid.uuid4())
+        #self.request_uid = self.request.get("uid") or str(uuid.uuid4()) ###
+        self.request_uid = self.request.get("uid")
 
         self.operation = self.request.get("action")  # "Present" or "CleanUp"
 
-        self.zone = ""                               # Pass as var
         self.cert_cn = self.request["dnsName"]
+        self.zone = self.request.get("resolvedZone")[:-1]
+
         self.required_txt_record = self.request["key"]
         self.resolved_fqdn = self.request["resolvedFQDN"]
 
@@ -65,29 +67,23 @@ class AcmeSolver:
 
 
     def run(self):
-        if self.operation == "DELETE":
-            self.cleanup()
+        if self.operation == "CleanUp":
+            self.delete_record()
         else:
             self.present()
 
-        resp = {'uid': self.request_uid, 'status': 'success'}
-        log("Response to cert-manager: " + json.dumps(resp, indent=2))
+        resp = {"uid": self.request_uid, "success": True}
 
-        return jsonify({
-            "uid": self.request_uid,
-            "status": "success"
-        }), 200, {'Content-Type': 'application/json'}
+        return jsonify({"response": resp})
+
+        log("Response to cert-manager: " + json.dumps(resp, indent=2))
 
 
     def present(self):
-
         if self.check_record_exists():
             self.update_record()
         else:
             self.create_record()
-
-    def cleanup(self):
-        self.delete_record()
 
 
     def assemble_acme_record(self):
@@ -95,6 +91,7 @@ class AcmeSolver:
             raise ValueError("Challenge FQDN doesn't match known zone")
         acme_challenge_record = self.cert_cn[: -len(self.zone) - 1]
         return f"_acme-challenge.{acme_challenge_record}"
+
 
     def check_record_exists(self):
         search_url = f"{self.base_url}/zones/records/all/{self.zone}/search/{self.acme_challenge_record}"
@@ -107,20 +104,21 @@ class AcmeSolver:
             return True
         return False
 
+
     def create_record(self):
         url = f"{self.base_url}/zones/records/add/{self.zone}/TXT"
         requests.put(url, headers=self.headers, auth=self.auth, json=self.api_payload)
+
 
     def update_record(self):
         url = f"{self.base_url}/zones/records/{self.record_id}"
         requests.post(url, headers=self.headers, auth=self.auth, json=self.api_payload)
 
+
     def delete_record(self):
-        # in the future we may delete records, but not yet..
-        pass
-        #if self.check_record_exists():
-            #url = f"{self.base_url}/zones/records/{self.record_id}"
-            #requests.delete(url, headers=self.headers, auth=self.auth)
+        if self.check_record_exists():
+            url = f"{self.base_url}/zones/records/{self.zone}/{self.record_id}"
+            requests.delete(url, headers=self.headers, auth=self.auth)
 
 
 def log(msg, level="INFO"):
@@ -133,4 +131,3 @@ def log(msg, level="INFO"):
 # longer needed, kept for reference:
 #if __name__ == '__main__':
 #    app.run(host='0.0.0.0', port=8443)
-
