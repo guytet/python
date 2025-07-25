@@ -36,7 +36,7 @@ class AcmeSolver:
         self.request = self.payload["request"]
         self.request_uid = self.request.get("uid")
 
-        # cert-manager will sent either: "Present" or "CleanUp"
+        # cert-manager will send either: "Present" or "CleanUp"
         self.operation = self.request.get("action")
 
         self.cert_cn = self.request["dnsName"]

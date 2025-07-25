@@ -87,7 +87,6 @@ spec:
           secret:
             secretName: {{ index .Values "easydns-acme-solver" "tls" "secretName" }}
 ---
-# ClusterRole: allow cert-manager to create challenge resources in your API group
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -97,7 +96,6 @@ rules:
     resources: ["*"]
     verbs: ["create"]
 ---
-# ClusterRoleBinding: bind the above role to cert-manager's ServiceAccount
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
