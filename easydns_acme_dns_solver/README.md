@@ -28,6 +28,8 @@ This project provides a simple ACME DNS-01 challenge solver for EasyDNS, impleme
    git clone https://github.com/your-org/easydns-acme-solver.git
    cd easydns-acme-solver
 ```
+Run locally for testing, or consult `example_helm_template` on how to deploy into k8s after building the image.
+
 2. **Set environment variables**
 
 ```
