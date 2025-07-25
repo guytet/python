@@ -23,16 +23,16 @@ This project provides a simple ACME DNS-01 challenge solver for EasyDNS, impleme
 
 ## Installation & Usage
 
-1. **Clone the repository**  
+**Clone the repository...**  
 ```
    git clone https://github.com/your-org/easydns-acme-solver.git
    cd easydns-acme-solver
 ```
 Run locally for testing, or consult `example_helm_template` on how to deploy into k8s after building the image.
 
-2. **Set environment variables**
+**Required  environment variables**
 
 ```
-export EASYDNS_API_TOKEN_NAME="my-token-name"
-export EASYDNS_API_TOKEN="my-super-secret-token"
+EASYDNS_API_TOKEN_NAME="my-token-name"
+EASYDNS_API_TOKEN="my-super-secret-token"
 ```
