@@ -1,6 +1,6 @@
 import os
+import sys
 import json
-import uuid
 import requests
 from datetime import datetime
 from requests.auth import HTTPBasicAuth
@@ -28,15 +28,16 @@ def discovery():
         ]
     }), 200
 
+
 class AcmeSolver:
     def __init__(self):
         self.payload = json.loads(request.data)
-        log("FULL PAYLOAD FROM CERT-MANAGER: " + json.dumps(self.payload, indent=2))
+        log("FULL PAYLOAD FROM CERT-MANAGER: " + json.dumps(self.payload))
 
         self.request = self.payload["request"]
         self.request_uid = self.request.get("uid")
 
-        # cert-manager will send either: "Present" or "CleanUp"
+        # cert-manager will sent either: "Present" or "CleanUp"
         self.operation = self.request.get("action")
 
         self.cert_cn = self.request["dnsName"]
@@ -67,23 +68,16 @@ class AcmeSolver:
 
 
     def run(self):
+        self.record_exists = self.check_record_exists()
+
         if self.operation == "CleanUp":
-            self.delete_record()
-        else:
-            self.present()
+            return(self.final_return(self.delete_record()))
 
-        resp = {"uid": self.request_uid, "success": True}
-
-        return jsonify({"response": resp})
-
-        log("Response to cert-manager: " + json.dumps(resp, indent=2))
-
-
-    def present(self):
-        if self.check_record_exists():
-            self.update_record()
-        else:
-            self.create_record()
+        if self.operation == "Present":
+            if self.record_exists:
+                return(self.final_return(self.update_record()))
+            else:
+                return(self.final_return(self.create_record()))
 
 
     def assemble_acme_record(self):
@@ -97,28 +91,54 @@ class AcmeSolver:
         search_url = f"{self.base_url}/zones/records/all/{self.zone}/search/{self.acme_challenge_record}"
         resp = requests.get(search_url, headers=self.headers, auth=self.auth).json()
 
-        log("EASYDNS SEARCH RESPONSE: " + json.dumps(resp, indent=2))
+        log("EASYDNS SEARCH RESPONSE: " + json.dumps(resp))
 
         if resp.get('count', 0) != 0:
             self.record_id = resp['data'][0]['id']
+            return True
+            log("EASYDNS SEARCH RESPONSE: " + json.dumps(resp))
+            log(f"{self.resolved_fqdn} exists")
+        return False
+
+
+    def delete_record(self):
+        url = f"{self.base_url}/zones/records/{self.zone}/{self.record_id}"
+        response = requests.delete(url, headers=self.headers, auth=self.auth).json()
+
+        if response.get("status") == 200:
+            log("EASYDNS DELETE RESPONSE: " + json.dumps(response))
+            return True
+        return False
+
+
+    def update_record(self):
+        url = f"{self.base_url}/zones/records/{self.record_id}"
+        response = requests.post(
+            url, headers=self.headers, auth=self.auth, json=self.api_payload
+        ).json()
+
+        if response.get("status") == 200:
+            log("EASYDNS UPDATE RESPONSE: " + json.dumps(response))
             return True
         return False
 
 
     def create_record(self):
         url = f"{self.base_url}/zones/records/add/{self.zone}/TXT"
-        requests.put(url, headers=self.headers, auth=self.auth, json=self.api_payload)
+        response = requests.put(
+            url, headers=self.headers, auth=self.auth, json=self.api_payload
+        ).json()
+
+        if response.get("status") == 200:
+            log("EASYDNS CREATE RESPONSE: " + json.dumps(response))
+            return True
+        return False
 
 
-    def update_record(self):
-        url = f"{self.base_url}/zones/records/{self.record_id}"
-        requests.post(url, headers=self.headers, auth=self.auth, json=self.api_payload)
-
-
-    def delete_record(self):
-        if self.check_record_exists():
-            url = f"{self.base_url}/zones/records/{self.zone}/{self.record_id}"
-            requests.delete(url, headers=self.headers, auth=self.auth)
+    def final_return(self, result):
+        resp = {"uid": self.request_uid, "success": result}
+        log("Response to cert-manager: " + json.dumps(resp))
+        return jsonify({"response": resp})
 
 
 def log(msg, level="INFO"):
