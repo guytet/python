@@ -489,34 +489,3 @@ class LocalClimateUtils:
                     if self.check_if_cooling_required(context):
                         self.call_for_cooling(context)
 
-
-
-######################################################################
-
-#def initialize(self):
-#    self.listen_state(self.wait_for_cooling, "climate.bedroom", attribute="hvac_action", new="cooling")
-#
-#def wait_for_cooling(self, entity, attribute, old, new, kwargs):
-#    self.log("Cooling has started. Proceeding with next step.")
-    # Continue with whatever logic should happen *after* cooling starts
-
-
-
-# Example for calling service
-# self.call_service("climate/set_hvac_mode", entity_id="climate.living_room", hvac_mode="cool")
-# self.call_service("climate/set_temperature", entity_id=climate_entity, temperature=...)
-
-# Example for aux heat
-#self.turn_on(aux_heat_entity)
-#self.turn_off(aux_heat_entity)
-
-# Example for finding supported mode of entity
-# modes = self.get_state(climate_entity, attribute="hvac_modes")
-# self.log(f"{climate_entity} supports modes: {modes}")
-
-# Example for shifting to _2 in order to make changes to aux_heat
-# climate = f"{climate}_2"
-
-# now being done using log_funtion_call()
-#caller = inspect.stack()[1].function
-#self.log(f"{inspect.currentframe().f_code.co_name} called by {caller}")
