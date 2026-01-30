@@ -1,0 +1,43 @@
+---
+sensor_tracking:
+  module: sensor_tracking
+  class: SensorTracking
+  climates: climate.living_room,climate.bedroom
+  humidity_sensors: sensor.living_room_current_humidity,sensor.bedroom_current_humidity
+  temperature_sensors: sensor.living_room_current_temperature,sensor.bedroom_current_temperature
+
+  preferred_weather_entity: weather.living_room
+
+  in_testing: False
+
+  # cooling variables
+  cooling_outdoor_temp_threshold:
+  # temp will not be set less than:
+  living_room_min_temp_day:
+  living_room_min_temp_night:
+  bedroom_min_temp_day:
+  bedroom_min_temp_night:
+  # by this threshold we decide how to trigger cooling,
+  # meaning should which of the following vars group's values should be used
+  # when setting the desired temp on the thermostat
+  daytime_outdoor_warm_threshold:
+  daytime_outdoor_hot_threshold:
+  daytime_outdoor_very_hot_threshold:
+  # the actual values that need to be exceeded in order for cooling to start.
+  daytime_cooling_set_warm: 
+  daytime_cooling_set_hot: 
+  daytime_cooling_set_very_hot:
+  daytime_cooling_set_extra_hot: 
+  # the first var is humidity % as reported by the sensor
+  # the second var is the temp' threshold we need to reach inodoors,
+  # in order to trigger cooling due to high humidity.
+  daytime_indoor_humidity_set:
+  humidity_cooling_indoor_temp_set:
+
+  night_cooling_set:
+  cooling_to_idle_temp_set:
+
+  # heating variables
+  living_room_heating_idle_temp_set:
+  daytime_bedroom_heating_idle_temp_set:
+  night_bedroom_heating_idle_temp_set:
