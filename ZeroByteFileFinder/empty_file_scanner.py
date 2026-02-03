@@ -3,7 +3,7 @@ import argparse
 
 """
 Takes <dir path> as arg value
-Recurselivy prints all 0 byte files within <dir path
+Recurselivy prints all 0 byte files within <dir path>
 """
 
 class ZeroByteFileFinder:
