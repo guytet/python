@@ -14,14 +14,14 @@ This makes it useful for monitoring certificate expiration and detecting service
 ## Usage
 
 ```bash
-# HTTPS
-python cert_validity.py example.com 443
+# HTTPS (Default check)
+python cert_validity.py --server example.com
 
 # IMAPS
-python cert_validity.py mail.example.com 993
+python cert_validity.py --server imap.example.com --port 993
 
 # POP3S
-python cert_validity.py mail.example.com 995
+python cert_validity.py --server pop.example.com --port 995
 
 # SMTPS
-python cert_validity.py mail.example.com 465
+python cert_validity.py --server smtp.example.com --port 465
